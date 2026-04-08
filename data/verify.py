@@ -10,7 +10,7 @@ from torch.utils.data import DataLoader
 
 from data.dataset import PolypDataset
 from data.augmentation import get_train_transforms
-from constants import IMAGE_DIR_TIF, MASK_DIR_TIF, BATCH_SIZE
+from constants import IMAGE_DIR_TIF, MASK_DIR_TIF, BATCH_SIZE, RESULTING_FIGURES_DIR
 
 # ImageNet stats for denormalization
 MEAN = torch.tensor([0.485, 0.456, 0.406]).view(3, 1, 1)
@@ -58,9 +58,9 @@ def verify_raw():
         axes[i, 1].axis("off")
 
     plt.tight_layout()
-    os.makedirs("results/figures", exist_ok=True)
-    plt.savefig("results/figures/verify_raw.png", dpi=150)
-    print("\n✅ Saved → results/figures/verify_raw.png")
+    os.makedirs(RESULTING_FIGURES_DIR, exist_ok=True)
+    plt.savefig(f"{RESULTING_FIGURES_DIR}/verify_raw.png", dpi=150)
+    print(f"\n✅ Saved → {RESULTING_FIGURES_DIR}/verify_raw.png")
 
 
 def verify_with_transforms():
@@ -76,7 +76,7 @@ def verify_with_transforms():
         image_dir=IMAGE_DIR_TIF, mask_dir=MASK_DIR_TIF, transform=get_train_transforms()
     )
 
-    loader = DataLoader(dataset, batch_size=4, shuffle=True)
+    loader = DataLoader(dataset, batch_size=BATCH_SIZE, shuffle=True)
     images, masks = next(iter(loader))
 
     print(f"✅ Dataset size : {len(dataset)} pairs")
@@ -102,13 +102,12 @@ def verify_with_transforms():
         axes[i, 1].axis("off")
 
     plt.tight_layout()
-    os.makedirs("results/figures", exist_ok=True)
-    plt.savefig("results/figures/verify_transforms.png", dpi=150)
-    print("\n✅ Saved → results/figures/verify_transforms.png")
-    print("🎉 Full pipeline verified!")
-    print("\nNext step: python data/split.py")
+    os.makedirs(RESULTING_FIGURES_DIR, exist_ok=True)
+    plt.savefig(f"{RESULTING_FIGURES_DIR}/verify_transforms.png", dpi=150)
+    print(f"\n✅ Saved → {RESULTING_FIGURES_DIR}/verify_transforms.png")
+    print("pipeline verified!✅")
 
 
 if __name__ == "__main__":
-    verify_raw()  # Pehle raw check karo
-    verify_with_transforms()  # Phir transform ke saath
+    verify_raw()  
+    verify_with_transforms() 
