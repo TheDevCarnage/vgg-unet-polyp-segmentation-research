@@ -37,3 +37,4 @@ LEARNING_RATE = 1e-4
 RESULTING_FIGURES_DIR = "results/figures"
 
 CHECKPOINT_DIR = "results/checkpoints"
+RESULTS_DIR = "results"
