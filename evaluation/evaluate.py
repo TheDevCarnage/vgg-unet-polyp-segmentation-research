@@ -10,7 +10,7 @@ from data.augmentation import get_val_transforms
 from training.metrics import compute_all_metrics
 from evaluation.visualize import plot_predictions, plot_training_history
 from models.unet_baseline import UNetBaseline
-from constants import TEST_IMG_DIR, TEST_MASK_DIR, RESULTS_DIR
+from constants import TEST_IMG_DIR, TEST_MASK_DIR, RESULTS_DIR, CHECKPOINT_DIR
 
 
 def evaluate(model, model_name: str, checkpoint_path: str):
@@ -83,8 +83,7 @@ def main():
 
     # Auto-resolve checkpoint path if not provided
     model_name      = f"{args.model}_baseline_{args.loss}"
-    checkpoint_path = args.checkpoint or \
-        f"results/checkpoints/{model_name}_best.pth"
+    checkpoint_path = args.checkpoint or f"{CHECKPOINT_DIR}/{model_name}_best.pth"
 
     if not os.path.exists(checkpoint_path):
         print(f"❌ Checkpoint not found: {checkpoint_path}")
