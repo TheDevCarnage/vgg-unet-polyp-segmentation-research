@@ -74,11 +74,15 @@ class PolypDataset(Dataset):
             augmented = self.transform(image=image, mask=mask)
             image = augmented["image"]  # Returns uint8 numpy array
             mask = augmented["mask"]  # Returns float32 numpy array
+            image = torch.from_numpy(image).permute(2, 0, 1).float() 
+        else:
+            image = torch.from_numpy(image).permute(2, 0, 1).float() / 255.0
 
         # Convert to tensors
         # NOTE: Division by 255.0 only if transform has NO Normalize step
         # If using A.Normalize — it handles scaling internally, do NOT divide
-        image = torch.from_numpy(image).permute(2, 0, 1).float() / 255.0
+
+        # image = torch.from_numpy(image).permute(2, 0, 1).float() / 255.0
         mask = torch.from_numpy(mask).unsqueeze(0).float()
 
         return image, mask

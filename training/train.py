@@ -138,8 +138,45 @@ def train(model, model_name: str, loss_name: str = "bce_dice"):
     print(f"  Train samples : {len(train_dataset)}")
     print(f"  Val samples   : {len(val_dataset)}\n")
 
+    # Baseline UNet — uniform LR
     # Optimizer + scheduler + loss
     optimizer = torch.optim.Adam(model.parameters(), lr=LEARNING_RATE)
+    is_vgg = hasattr(model, "enc1") and hasattr(model, "bottleneck")
+
+    if is_vgg:
+        # VGG encoder params
+        encoder_params = (
+            list(model.enc1.parameters())
+            + list(model.enc2.parameters())
+            + list(model.enc3.parameters())
+            + list(model.enc4.parameters())
+            + list(model.enc5.parameters())
+        )
+        # Decoder + bottleneck params
+        decoder_params = (
+            list(model.bottleneck.parameters())
+            + list(model.up5.parameters())
+            + list(model.dec5.parameters())
+            + list(model.up4.parameters())
+            + list(model.dec4.parameters())
+            + list(model.up3.parameters())
+            + list(model.dec3.parameters())
+            + list(model.up2.parameters())
+            + list(model.dec2.parameters())
+            + list(model.up1.parameters())
+            + list(model.dec1.parameters())
+            + list(model.output.parameters())
+        )
+        optimizer = torch.optim.Adam(
+            [
+                {"params": encoder_params, "lr": LEARNING_RATE / 10},  # 1e-5
+                {"params": decoder_params, "lr": LEARNING_RATE},  # 1e-4
+            ]
+        )
+        print(
+            f"  Differential LR → encoder: {LEARNING_RATE/10}, decoder: {LEARNING_RATE}"
+        )
+    
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
         optimizer, mode="max", patience=5, factor=0.5, verbose=True
     )

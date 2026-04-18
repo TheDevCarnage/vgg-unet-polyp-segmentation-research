@@ -12,12 +12,13 @@ Usage:
 import argparse
 import torch
 from models.unet_baseline import UNetBaseline
+from models.vgg_unet import VGGUNet
 from training.train import train
 
 
 def main():
     parser = argparse.ArgumentParser(description="Train polyp segmentation model")
-    parser.add_argument("--model", default="unet", help="Model: unet")
+    parser.add_argument("--model", default="unet", help="Model: unet | vgg_unet")
     parser.add_argument(
         "--loss", default="bce_dice", help="Loss: bce, dice, bce_dice, focal"
     )
@@ -26,6 +27,9 @@ def main():
     if args.model == "unet":
         model = UNetBaseline()
         model_name = f"unet_baseline_{args.loss}"
+    elif args.model == "vgg_unet":
+        model = VGGUNet(pretrained=True)
+        model_name = f"vgg_unet_{args.loss}"
     else:
         raise ValueError(f"Unknown model: {args.model}")
 
