@@ -141,7 +141,7 @@ def train(model, model_name: str, loss_name: str = "bce_dice"):
     # Baseline UNet — uniform LR
     # Optimizer + scheduler + loss
     optimizer = torch.optim.Adam(model.parameters(), lr=LEARNING_RATE)
-    is_vgg = hasattr(model, "enc1") and hasattr(model, "bottleneck")
+    is_vgg = model_name == "vgg_unet"
 
     if is_vgg:
         # VGG encoder params
@@ -176,7 +176,7 @@ def train(model, model_name: str, loss_name: str = "bce_dice"):
         print(
             f"  Differential LR → encoder: {LEARNING_RATE/10}, decoder: {LEARNING_RATE}"
         )
-    
+
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
         optimizer, mode="max", patience=5, factor=0.5, verbose=True
     )
