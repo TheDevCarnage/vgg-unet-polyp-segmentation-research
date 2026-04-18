@@ -10,6 +10,7 @@ from data.augmentation import get_val_transforms
 from training.metrics import compute_all_metrics
 from evaluation.visualize import plot_predictions, plot_training_history
 from models.unet_baseline import UNetBaseline
+from models.vgg_unet import VGGUNet
 from constants import TEST_IMG_DIR, TEST_MASK_DIR, RESULTS_DIR, CHECKPOINT_DIR
 
 
@@ -76,7 +77,7 @@ def evaluate(model, model_name: str, checkpoint_path: str):
 
 def main():
     parser = argparse.ArgumentParser(description="Evaluate trained segmentation model")
-    parser.add_argument("--model",      default="unet",     help="Model: unet")
+    parser.add_argument("--model",      default="unet",     help="Model: unet | vgg_unet")
     parser.add_argument("--loss",       default="bce_dice", help="Loss used during training")
     parser.add_argument("--checkpoint", default=None,       help="Path to .pth checkpoint")
     args = parser.parse_args()
@@ -91,6 +92,8 @@ def main():
 
     if args.model == "unet":
         model = UNetBaseline()
+    elif args.model == "vgg_unet":
+        model = VGGUNet()
     else:
         raise ValueError(f"Unknown model: {args.model}")
 
