@@ -94,6 +94,8 @@ def main():
         model = UNetBaseline()
     elif args.model == "vgg_unet":
         model = VGGUNet()
+    elif args.model == "vgg_unet_frozen":
+        model = VGGUNet(pretrained=True, freeze_encoder=True)
     else:
         raise ValueError(f"Unknown model: {args.model}")
 

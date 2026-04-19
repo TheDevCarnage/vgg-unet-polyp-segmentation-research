@@ -9,6 +9,7 @@ from data.dataset import PolypDataset
 from data.augmentation import get_train_transforms, get_val_transforms
 from training.loss import get_loss
 from training.metrics import compute_all_metrics
+from models.vgg_unet import VGGUNet
 from constants import (
     TRAIN_IMG_DIR, TRAIN_MASK_DIR,
     VAL_IMG_DIR,   VAL_MASK_DIR,
@@ -141,7 +142,7 @@ def train(model, model_name: str, loss_name: str = "bce_dice"):
     # Baseline UNet — uniform LR
     # Optimizer + scheduler + loss
     optimizer = torch.optim.Adam(model.parameters(), lr=LEARNING_RATE)
-    is_vgg = model_name == "vgg_unet"
+    is_vgg = isinstance(model, VGGUNet)
 
     if is_vgg:
         # VGG encoder params
