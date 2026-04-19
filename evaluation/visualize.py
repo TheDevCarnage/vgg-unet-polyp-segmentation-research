@@ -39,7 +39,7 @@ def plot_predictions(model, model_name: str, n_samples: int = 6):
         preds = model(images.to(device)).cpu()
 
     metrics = compute_all_metrics(preds, masks)
-    print(f"\nTest Metrics — {model_name}")
+    print(f"\nSample Metrics (visualization only) — {model_name}")
     print(f"  Dice      : {metrics['dice']:.4f}")
     print(f"  IoU       : {metrics['iou']:.4f}")
     print(f"  Precision : {metrics['precision']:.4f}")
