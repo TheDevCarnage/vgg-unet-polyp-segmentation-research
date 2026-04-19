@@ -18,7 +18,7 @@ from training.train import train
 
 def main():
     parser = argparse.ArgumentParser(description="Train polyp segmentation model")
-    parser.add_argument("--model", default="unet", help="Model: unet | vgg_unet")
+    parser.add_argument("--model", default="unet", help="Model: unet | vgg_unet | vgg_unet_frozen")
     parser.add_argument(
         "--loss", default="bce_dice", help="Loss: bce, dice, bce_dice, focal"
     )
@@ -30,6 +30,9 @@ def main():
     elif args.model == "vgg_unet":
         model = VGGUNet(pretrained=True)
         model_name = f"vgg_unet_{args.loss}"
+    elif args.model == "vgg_unet_frozen":
+        model = VGGUNet(pretrained=True, freeze_encoder=True)
+        model_name = f"vgg_unet_frozen_{args.loss}"
     else:
         raise ValueError(f"Unknown model: {args.model}")
 
