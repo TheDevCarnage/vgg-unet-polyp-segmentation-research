@@ -109,7 +109,7 @@ def validate(model, loader, criterion, device):
     return total_loss / n, {k: v / n for k, v in all_metrics.items()}
 
 
-def train(model, model_name: str, loss_name: str = "bce_dice"):
+def train(model, model_name: str, loss_name: str = "bce_dice", train_transform=None):
     """
     Full training loop with checkpointing and logging.
 
@@ -129,8 +129,11 @@ def train(model, model_name: str, loss_name: str = "bce_dice"):
 
     model = model.to(device)
 
+    if train_transform is None:
+        train_transform = get_train_transforms()
+
     # Data loaders
-    train_dataset = PolypDataset(TRAIN_IMG_DIR, TRAIN_MASK_DIR, get_train_transforms())
+    train_dataset = PolypDataset(TRAIN_IMG_DIR, TRAIN_MASK_DIR, train_transform)
     val_dataset   = PolypDataset(VAL_IMG_DIR,   VAL_MASK_DIR,   get_val_transforms())
 
     train_loader  = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True,  num_workers=2)
