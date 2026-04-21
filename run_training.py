@@ -14,15 +14,34 @@ import torch
 from models.unet_baseline import UNetBaseline
 from models.vgg_unet import VGGUNet
 from training.train import train
+from data.augmentation import (
+    get_train_transforms,
+    get_train_transforms_minimal,
+    get_train_transforms_heavy,
+)
 
+# Augmentation registry
+AUG_REGISTRY = {
+    "standard": get_train_transforms,
+    "minimal": get_train_transforms_minimal,
+    "heavy": get_train_transforms_heavy,
+}
 
 def main():
     parser = argparse.ArgumentParser(description="Train polyp segmentation model")
     parser.add_argument("--model", default="unet", help="Model: unet | vgg_unet | vgg_unet_frozen")
+    parser.add_argument("--aug", default="standard", help="standard | minimal | heavy")
     parser.add_argument(
         "--loss", default="bce_dice", help="Loss: bce, dice, bce_dice, focal"
     )
     args = parser.parse_args()
+
+    # Resolve augmentation
+    if args.aug not in AUG_REGISTRY:
+        raise ValueError(
+            f"Unknown augmentation: {args.aug}. Choose from {list(AUG_REGISTRY.keys())}"
+        )
+    train_transform = AUG_REGISTRY[args.aug]()
 
     if args.model == "unet":
         model = UNetBaseline()
@@ -36,7 +55,7 @@ def main():
     else:
         raise ValueError(f"Unknown model: {args.model}")
 
-    train(model, model_name, loss_name=args.loss)
+    train(model, model_name, loss_name=args.loss, train_transform=train_transform)
 
 
 if __name__ == "__main__":
