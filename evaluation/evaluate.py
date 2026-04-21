@@ -14,7 +14,7 @@ from models.vgg_unet import VGGUNet
 from constants import TEST_IMG_DIR, TEST_MASK_DIR, RESULTS_DIR, CHECKPOINT_DIR
 
 
-def evaluate(model, model_name: str, checkpoint_path: str):
+def evaluate(model, model_name: str, checkpoint_path: str, transform: str):
     """
     Run full evaluation on test set using best saved checkpoint.
     Computes Dice, IoU, Precision, Recall and saves prediction visuals.
@@ -23,6 +23,7 @@ def evaluate(model, model_name: str, checkpoint_path: str):
         model           : PyTorch model instance.
         model_name      : Used for saving results.
         checkpoint_path : Path to saved .pth checkpoint.
+        transform       : Used for saving results so that they don't over write existing results
     """
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -64,13 +65,13 @@ def evaluate(model, model_name: str, checkpoint_path: str):
 
     # Save metrics to CSV
     os.makedirs(RESULTS_DIR, exist_ok=True)
-    results_path = os.path.join(RESULTS_DIR, f"{model_name}_test_results.csv")
+    results_path = os.path.join(RESULTS_DIR, f"{model_name}{transform}_test_results.csv")
     pd.DataFrame([final_metrics]).to_csv(results_path, index=False)
     print(f"✅ Test results saved → {results_path}")
 
     # Plot predictions and training curves
-    plot_predictions(model, model_name, n_samples=6)
-    plot_training_history(model_name)
+    plot_predictions(model, model_name, transform, n_samples=6)
+    plot_training_history(model_name, transform)
 
     return final_metrics
 
@@ -79,11 +80,13 @@ def main():
     parser = argparse.ArgumentParser(description="Evaluate trained segmentation model")
     parser.add_argument("--model",      default="unet",     help="Model: unet | vgg_unet")
     parser.add_argument("--loss",       default="bce_dice", help="Loss used during training")
+    parser.add_argument("--aug", default="standard", help="standard | minimal | heavy")
     parser.add_argument("--checkpoint", default=None,       help="Path to .pth checkpoint")
     args = parser.parse_args()
 
     # Auto-resolve checkpoint path if not provided
     model_name      = f"{args.model}_baseline_{args.loss}"
+    aug_suffix = f"_{args.aug}" if args.aug and args.aug != "standard" else ""
     checkpoint_path = args.checkpoint or f"{CHECKPOINT_DIR}/{model_name}_best.pth"
 
     if not os.path.exists(checkpoint_path):
@@ -99,7 +102,7 @@ def main():
     else:
         raise ValueError(f"Unknown model: {args.model}")
 
-    evaluate(model, model_name, checkpoint_path)
+    evaluate(model, model_name, checkpoint_path, aug_suffix)
 
 
 if __name__ == "__main__":

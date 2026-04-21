@@ -18,7 +18,7 @@ def denormalize(tensor: torch.Tensor) -> torch.Tensor:
     return (tensor * STD + MEAN).clamp(0, 1)
 
 
-def plot_predictions(model, model_name: str, n_samples: int = 6):
+def plot_predictions(model, model_name: str, transform: str, n_samples: int = 6):
     """
     Visualize model predictions on test set.
     Saves a grid of: Input Image | Ground Truth | Prediction
@@ -39,7 +39,7 @@ def plot_predictions(model, model_name: str, n_samples: int = 6):
         preds = model(images.to(device)).cpu()
 
     metrics = compute_all_metrics(preds, masks)
-    print(f"\nSample Metrics (visualization only) — {model_name}")
+    print(f"\nSample Metrics (visualization only) — {model_name}{transform}")
     print(f"  Dice      : {metrics['dice']:.4f}")
     print(f"  IoU       : {metrics['iou']:.4f}")
     print(f"  Precision : {metrics['precision']:.4f}")
@@ -69,12 +69,12 @@ def plot_predictions(model, model_name: str, n_samples: int = 6):
 
     plt.tight_layout()
     os.makedirs(RESULTS_DIR, exist_ok=True)
-    save_path = os.path.join(RESULTS_DIR, f"figures/{model_name}_predictions.png")
+    save_path = os.path.join(RESULTS_DIR, f"figures/{model_name}{transform}_predictions.png")
     plt.savefig(save_path, dpi=150)
     print(f"\n✅ Predictions saved → {save_path}")
 
 
-def plot_training_history(model_name: str):
+def plot_training_history(model_name: str, transform: str):
     """
     Plot training curves from saved CSV history.
     Shows loss and dice score over epochs for train and validation.
@@ -88,7 +88,7 @@ def plot_training_history(model_name: str):
     df = pd.read_csv(history_path)
 
     fig, axes = plt.subplots(1, 3, figsize=(18, 5))
-    fig.suptitle(f"Training History — {model_name}", fontsize=14)
+    fig.suptitle(f"Training History — {model_name}{transform}", fontsize=14)
 
     # Loss curve
     axes[0].plot(df["epoch"], df["train_loss"], label="Train Loss")
@@ -115,6 +115,6 @@ def plot_training_history(model_name: str):
     axes[2].grid(True)
 
     plt.tight_layout()
-    save_path = os.path.join(RESULTS_DIR, f"figures/{model_name}_history.png")
+    save_path = os.path.join(RESULTS_DIR, f"figures/{model_name}{transform}_history.png")
     plt.savefig(save_path, dpi=150)
     print(f"✅ Training curves saved → {save_path}")
