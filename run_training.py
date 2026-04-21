@@ -42,16 +42,17 @@ def main():
             f"Unknown augmentation: {args.aug}. Choose from {list(AUG_REGISTRY.keys())}"
         )
     train_transform = AUG_REGISTRY[args.aug]()
+    aug_suffix = f"_{args.aug}" if args.aug and args.aug != "standard" else ""
 
     if args.model == "unet":
         model = UNetBaseline()
-        model_name = f"unet_baseline_{args.loss}"
+        model_name = f"unet_baseline_{args.loss}{aug_suffix}"
     elif args.model == "vgg_unet":
         model = VGGUNet(pretrained=True)
-        model_name = f"vgg_unet_{args.loss}"
+        model_name = f"vgg_unet_{args.loss}{aug_suffix}"
     elif args.model == "vgg_unet_frozen":
         model = VGGUNet(pretrained=True, freeze_encoder=True)
-        model_name = f"vgg_unet_frozen_{args.loss}"
+        model_name = f"vgg_unet_frozen_{args.loss}{aug_suffix}"
     else:
         raise ValueError(f"Unknown model: {args.model}")
 
