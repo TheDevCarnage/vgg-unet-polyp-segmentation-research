@@ -1,72 +1,126 @@
-# vgg-unet-polyp-segmentation-research
+# VGG-UNet Hybrid Architecture for Polyp Segmentation
 
-## VGG-UNet Hybrid Architecture for Polyp Segmentation
+> **Research Status: ✅ Complete — Paper submitted to arXiv**
+> Systematic evaluation of a VGG16 encoder fused with a U-Net decoder for colorectal polyp segmentation on the CVC-ClinicDB dataset.
 
-> **Research Status: 🔬 In Progress**  
-> Investigating the effectiveness of a VGG16 encoder fused with a U-Net decoder for colorectal polyp segmentation on the CVC-ClinicDB dataset.
+---
+
+## 📄 Paper
+
+**VGG-UNet Hybrid Architecture for Colorectal Polyp Segmentation: A Systematic Evaluation on CVC-ClinicDB**
+Rishabh Shukla, Shriyansh Singh — arXiv preprint, 2025
+> arXiv link will be added upon publication
 
 ---
 
 ## 📌 Research Hypothesis
 
-Standard U-Net uses a randomly initialized or lightly pretrained encoder. This research investigates whether replacing the encoder with a **pretrained VGG16 backbone** — known for strong feature extraction capabilities — yields measurable improvements in polyp segmentation accuracy, particularly for boundary delineation and small polyp detection.
+Standard U-Net uses a randomly initialized encoder, which can be suboptimal on small medical imaging datasets. This research investigates whether replacing the encoder with a **pretrained VGG16 backbone** yields measurable improvements in polyp segmentation accuracy, particularly for boundary delineation and small polyp detection.
 
-**Core Question:**  
+**Core Question:**
 *Does transfer learning via a pretrained VGG16 encoder improve segmentation performance over a standard U-Net baseline on the CVC-ClinicDB polyp dataset?*
 
----
-
-## 🎯 Objectives
-
-- [ ] Implement a standard U-Net baseline
-- [ ] Implement VGG16-UNet hybrid (pretrained encoder + custom decoder)
-- [ ] Train and evaluate both models on CVC-ClinicDB
-- [ ] Compare performance using Dice coefficient, IoU, and F1-score
-- [ ] Analyze failure cases — where does VGG-UNet underperform?
-- [ ] Document findings regardless of outcome (positive or negative results)
-- [ ] Publish preprint on arXiv
+**Answer: Yes — significantly.** VGG16-UNet achieves Val Dice 0.9297 vs. 0.7743 for standard U-Net — a **+15.54 point improvement**.
 
 ---
 
-## 📂 Repository Structure
+## 📈 Results
+
+### Validation Results — All 8 Experiments
+
+| Model / Configuration | Epoch | Val Dice | Val IoU | Precision | Recall |
+|---|---|---|---|---|---|
+| UNet Baseline (BCE-Dice) | 44 | 0.7743 | 0.6444 | 0.8917 | 0.6917 |
+| **VGG16-UNet (BCE-Dice) ★** | **41** | **0.9297** | **0.8698** | **0.9419** | **0.9189** |
+| VGG16-UNet (Dice only) | 50 | 0.9200 | 0.8558 | 0.9416 | 0.9015 |
+| VGG16-UNet (Focal) | 43 | 0.9237 | 0.8608 | 0.9384 | 0.9111 |
+| VGG16-UNet (Frozen Encoder) | 48 | 0.9104 | 0.8370 | 0.9184 | 0.9044 |
+| VGG16-UNet (Minimal Aug) | 19 | 0.9054 | 0.8304 | 0.9303 | 0.8844 |
+| VGG16-UNet (Heavy Aug) | 42 | 0.9176 | 0.8505 | 0.9218 | 0.9144 |
+| VGG19-UNet (BCE-Dice) | 36 | 0.9181 | 0.8507 | 0.9457 | 0.8938 |
+
+★ Primary proposed model
+
+### Test Results (Held-Out Set)
+
+| Model / Configuration | Test Dice | Test IoU | Precision | Recall |
+|---|---|---|---|---|
+| UNet Baseline (BCE-Dice) | 0.7962 | 0.6685 | 0.8268 | 0.7924 |
+| **VGG16-UNet (BCE-Dice) ★** | **0.9156** | **0.8526** | **0.8970** | **0.9449** |
+| VGG16-UNet (Dice only) † | 0.9200 | 0.8550 | 0.9065 | 0.9383 |
+| VGG16-UNet (Focal) | 0.8892 | 0.8144 | 0.8679 | 0.9317 |
+| VGG16-UNet (Frozen Encoder) | 0.9144 | 0.8469 | 0.9318 | 0.9016 |
+| VGG16-UNet (Minimal Aug) | 0.8961 | 0.8158 | 0.9036 | 0.8937 |
+| VGG16-UNet (Heavy Aug) | 0.8935 | 0.8167 | 0.9018 | 0.8986 |
+| VGG19-UNet (BCE-Dice) | 0.9159 | 0.8494 | 0.9135 | 0.9221 |
+
+† Best test-set Dice (0.9200, zero val→test degradation)
+
+### Comparison with State-of-the-Art on CVC-ClinicDB
+
+| Method | Val Dice | Val IoU | Year |
+|---|---|---|---|
+| U-Net baseline | 0.7743 | 0.6444 | 2015 |
+| ResUNet++ | 0.7900 | 0.7900 | 2019 |
+| PraNet | 0.8990 | — | 2020 |
+| **VGG16-UNet (ours) ★** | **0.9297** | **0.8698** | **2025** |
+| EENet | 0.9316 | 0.8817 | 2024 |
+| FAENet | 0.9330 | 0.8830 | 2025 |
+| DCATNet | 0.9444 | — | 2025 |
+
+---
+
+## 🏗️ Model Architecture
+
+### Baseline: Standard U-Net
+- Randomly initialized encoder
+- 4-level downsampling: 64 → 128 → 256 → 512 channels
+- Standard skip connections, ~31M parameters
+
+### Proposed: VGG16-UNet Hybrid
 
 ```
-vgg-unet-polyp-segmentation-research/
-│
-├── README.md
-├── requirements.txt
-├── config.yaml                    # All hyperparameters in one place
-│
-├── data/
-│   ├── download_dataset.py        # Script to fetch CVC-ClinicDB from Kaggle
-│   ├── dataset.py                 # PyTorch Dataset class
-│   └── augmentations.py           # Albumentations pipeline
-│
-├── models/
-│   ├── unet_baseline.py           # Standard U-Net (baseline)
-│   ├── vgg_encoder.py             # Pretrained VGG16 encoder blocks
-│   ├── unet_decoder.py            # Decoder with skip connections
-│   └── vgg_unet.py                # Combined VGG-UNet model
-│
-├── training/
-│   ├── train.py                   # Main training loop
-│   ├── loss.py                    # Combined Dice + BCE loss
-│   └── metrics.py                 # IoU, Dice, F1 score
-│
-├── evaluation/
-│   ├── evaluate.py                # Run evaluation on test set
-│   └── visualize.py               # Prediction overlays and heatmaps
-│
-├── notebooks/
-│   └── experiments.ipynb          # Kaggle/Colab exploration notebook
-│
-├── results/
-│   ├── figures/                   # Output plots and visualizations
-│   └── metrics.csv                # Logged experiment results
-│
-└── paper/
-    └── draft.md                   # Research write-up (in progress)
+Input Image (256×256×3)
+       │
+┌──────▼──────────────────────────────┐
+│         VGG16 Encoder               │
+│  (Pretrained on ImageNet)           │
+│                                     │
+│  Block 1: feats[0:4]  → 64ch  ──────┼──► skip1
+│  Block 2: feats[5:9]  → 128ch ──────┼──► skip2
+│  Block 3: feats[10:16]→ 256ch ──────┼──► skip3
+│  Block 4: feats[17:23]→ 512ch ──────┼──► skip4
+│  Block 5: feats[24:30]→ 512ch ──────┼──► skip5
+└──────────────────────────────┬──────┘
+                               │ MaxPool
+                    ┌──────────▼──────────┐
+                    │     Bottleneck       │
+                    │   (1024 channels)    │
+                    └──────────┬──────────┘
+                               │
+┌──────────────────────────────▼──────┐
+│         U-Net Decoder               │
+│                                     │
+│  UpConv(1024→512) + skip5 → 512ch   │
+│  UpConv(512→256)  + skip4 → 256ch   │
+│  UpConv(256→128)  + skip3 → 128ch   │
+│  UpConv(128→64)   + skip2 → 64ch    │
+│  UpConv(64→32)    + skip1 → 32ch    │
+└──────────────────────────────┬──────┘
+                               │
+                    ┌──────────▼──────────┐
+                    │  Conv1×1 + Sigmoid   │
+                    │  Output: (1×256×256) │
+                    └─────────────────────┘
 ```
+
+**Key design decisions:**
+- VGG16 encoder initialized with ImageNet pretrained weights
+- Differential learning rates: encoder 1e-5, decoder 1e-4
+- Encoder fine-tuned during training (not frozen by default)
+- Skip connections from each VGG block to corresponding decoder stage
+- Transposed convolutions for upsampling
+- Combined Dice + BCE loss for class imbalance
 
 ---
 
@@ -77,103 +131,43 @@ vgg-unet-polyp-segmentation-research/
 | Property | Value |
 |---|---|
 | Total Images | 612 |
-| Image Resolution | 384 × 288 pixels |
+| Original Resolution | 384 × 288 pixels |
+| Resized To | 256 × 256 pixels |
 | Mask Type | Binary (polyp vs background) |
 | Source | Hospital Clinic of Barcelona, Spain |
-| Train / Val / Test Split | 490 / 61 / 61 |
+| Train / Val / Test Split | 489 / 61 / 62 (80/10/10, seed=42) |
 
 **Download:**
 ```bash
-# Via Kaggle API
 kaggle datasets download -d balraj98/cvcclinicdb
 unzip cvcclinicdb.zip -d data/raw/
 ```
 
-**Citation:**  
-Bernal, J., et al. (2015). WM-DOVA maps for accurate polyp highlighting in colonoscopy: Validation vs. saliency maps from physicians. *Computerized Medical Imaging and Graphics*, 43, 99–111.
-
----
-
-## 🏗️ Model Architecture
-
-### Baseline: Standard U-Net
-- Randomly initialized encoder
-- Standard skip connections
-- Trained from scratch
-
-### Proposed: VGG16-UNet Hybrid
-
-```
-Input Image (384×288×3)
-       │
-┌──────▼──────────────────────────────┐
-│         VGG16 Encoder               │
-│  (Pretrained on ImageNet)           │
-│                                     │
-│  Block 1: Conv→Conv (64 ch)   ──────┼──► skip1
-│  Block 2: Conv→Conv (128 ch)  ──────┼──► skip2
-│  Block 3: Conv→Conv (256 ch)  ──────┼──► skip3
-│  Block 4: Conv→Conv (512 ch)  ──────┼──► skip4
-│  Block 5: Conv→Conv (512 ch)  ──────┼──► skip5
-└──────────────────────────────┬──────┘
-                               │
-                    ┌──────────▼──────────┐
-                    │     Bottleneck       │
-                    │   (1024 channels)    │
-                    └──────────┬──────────┘
-                               │
-┌──────────────────────────────▼──────┐
-│         U-Net Decoder               │
-│                                     │
-│  UpConv + skip5 → Dec4 (512 ch)     │
-│  UpConv + skip4 → Dec3 (256 ch)     │
-│  UpConv + skip3 → Dec2 (128 ch)     │
-│  UpConv + skip2 → Dec1 (64 ch)      │
-└──────────────────────────────┬──────┘
-                               │
-                    ┌──────────▼──────────┐
-                    │   Output (1×384×288) │
-                    │   Sigmoid activation │
-                    └─────────────────────┘
-```
-
-**Key design decisions:**
-- VGG16 encoder initialized with ImageNet pretrained weights
-- Encoder weights fine-tuned during training (not frozen)
-- Skip connections from each VGG block to corresponding decoder layer
-- Decoder uses transposed convolutions for upsampling
-- Combined Dice + BCE loss for handling class imbalance
+**Citation:**
+Bernal, J., et al. (2015). WM-DOVA maps for accurate polyp highlighting in colonoscopy. *Computerized Medical Imaging and Graphics*, 43, 99–111.
 
 ---
 
 ## ⚙️ Setup & Installation
+
+This project uses **Pipenv** for virtual environment and dependency management.
 
 ```bash
 # Clone the repository
 git clone https://github.com/yourusername/vgg-unet-polyp-segmentation-research.git
 cd vgg-unet-polyp-segmentation-research
 
-# Create virtual environment
-python -m venv venv
-source venv/bin/activate  # Windows: venv\Scripts\activate
+# Install pipenv if not already installed
+pip install pipenv
 
-# Install dependencies
+# Install dependencies and activate virtual environment
+pipenv install
+pipenv shell
+```
+
+Alternatively, using pip directly:
+```bash
 pip install -r requirements.txt
-```
-
-**requirements.txt**
-```
-torch>=2.0.0
-torchvision>=0.15.0
-albumentations>=1.3.0
-opencv-python>=4.7.0
-numpy>=1.24.0
-pandas>=2.0.0
-matplotlib>=3.7.0
-scikit-learn>=1.2.0
-tqdm>=4.65.0
-pyyaml>=6.0
-kaggle>=1.5.0
 ```
 
 ---
@@ -181,101 +175,139 @@ kaggle>=1.5.0
 ## 🚀 Quick Start
 
 ```bash
-# 1. Download dataset
-python data/download_dataset.py
+# 1. Download and verify dataset
+python -m data.download_dataset
 
-# 2. Train baseline U-Net
-python training/train.py --model unet --config config.yaml
+# 2. Split into train/val/test
+python -m data.split
 
-# 3. Train VGG-UNet
-python training/train.py --model vgg_unet --config config.yaml
+# 3. Verify data pipeline
+python -m data.verify
 
-# 4. Evaluate both models
-python evaluation/evaluate.py --model unet --checkpoint results/unet_best.pth
-python evaluation/evaluate.py --model vgg_unet --checkpoint results/vgg_unet_best.pth
+# 4. Train baseline U-Net
+python run_training.py --model unet --loss bce_dice --aug standard
 
-# 5. Visualize predictions
-python evaluation/visualize.py --model vgg_unet --checkpoint results/vgg_unet_best.pth
+# 5. Train proposed VGG16-UNet
+python run_training.py --model vgg_unet --loss bce_dice --aug standard
+
+# 6. Evaluate on held-out test set
+python evaluation/evaluate.py --model unet --loss bce_dice
+python evaluation/evaluate.py --model vgg_unet --loss bce_dice
+
+# 7. Print results summary across all experiments
+python results_summary.py
 ```
+
+### Training CLI Arguments
+
+| Argument | Options | Description |
+|---|---|---|
+| `--model` | `unet`, `vgg_unet`, `vgg_unet_frozen`, `vgg_unet_vgg19` | Model architecture |
+| `--loss` | `bce_dice`, `dice`, `focal` | Loss function |
+| `--aug` | `standard`, `minimal`, `heavy` | Data augmentation strategy |
 
 ---
 
-## 📈 Results (Updated as experiments run)
+## 📂 Repository Structure
 
-| Model | Dice ↑ | IoU ↑ | F1 ↑ | Params |
-|---|---|---|---|---|
-| Standard U-Net (baseline) | TBD | TBD | TBD | ~31M |
-| VGG16-UNet (proposed) | TBD | TBD | TBD | ~45M |
-
-*Results will be updated as experiments complete.*
-
-**Current SOTA on CVC-ClinicDB for reference:**
-
-| Model | Dice | IoU |
-|---|---|---|
-| EENet (2024) | 0.9316 | 0.8817 |
-| FAENet (2025) | 0.9330 | 0.8830 |
-| DCATNet (2025) | 0.9444 | — |
+```
+vgg-unet-polyp-segmentation-research/
+│
+├── README.md
+├── requirements.txt
+├── Pipfile                        # Pipenv dependency file
+├── constants.py                   # All paths and hyperparameters
+├── run_training.py                # Training entry point (CLI)
+├── results_summary.py             # Print all experiment results
+│
+├── data/
+│   ├── download_dataset.py        # Download CVC-ClinicDB from Kaggle
+│   ├── dataset.py                 # PyTorch Dataset class (TIF format support)
+│   ├── augmentation.py            # Albumentations transform pipelines
+│   ├── split.py                   # Reproducible train/val/test split
+│   └── verify.py                  # Data pipeline sanity check
+│
+├── models/
+│   ├── unet_baseline.py           # Standard U-Net (randomly initialized)
+│   └── vgg_unet.py                # VGG16/VGG19-UNet hybrid (configurable)
+│
+├── training/
+│   ├── train.py                   # Training loop with checkpointing & logging
+│   ├── loss.py                    # Loss registry: BCE, Dice, BCE-Dice, Focal
+│   └── metrics.py                 # Dice, IoU, Precision, Recall
+│
+├── evaluation/
+│   ├── evaluate.py                # Full test set evaluation
+│   └── visualize.py               # Prediction grids and training curves
+│
+└── results/
+    ├── checkpoints/               # Best model weights per experiment (.pth)
+    ├── figures/                   # Training curves and prediction visualizations
+    └── *_history.csv              # Per-epoch training logs per experiment
+```
 
 ---
 
 ## 🔬 Experiment Log
 
-| Date | Experiment | Notes |
-|---|---|---|
-| — | Repo initialized | Literature review in progress |
+| # | Model | Loss | Encoder | Augmentation | Val Dice | Test Dice |
+|---|---|---|---|---|---|---|
+| 1 | UNet Baseline | BCE-Dice | Random | Standard | 0.7743 | 0.7962 |
+| 2 | VGG16-UNet ★ | BCE-Dice | Pretrained | Standard | **0.9297** | 0.9156 |
+| 3 | VGG16-UNet | Dice only | Pretrained | Standard | 0.9200 | **0.9200** |
+| 4 | VGG16-UNet | Focal | Pretrained | Standard | 0.9237 | 0.8892 |
+| 5 | VGG16-UNet | BCE-Dice | Frozen | Standard | 0.9104 | 0.9144 |
+| 6 | VGG16-UNet | BCE-Dice | Pretrained | Minimal | 0.9054 | 0.8961 |
+| 7 | VGG16-UNet | BCE-Dice | Pretrained | Heavy | 0.9176 | 0.8935 |
+| 8 | VGG19-UNet | BCE-Dice | Pretrained | Standard | 0.9181 | 0.9159 |
 
 ---
 
-## 📖 Background & Related Work
+## 💡 Key Findings
 
-### Why Polyp Segmentation?
-Colorectal cancer is one of the leading causes of cancer-related deaths worldwide. Early and accurate detection of polyps during colonoscopy is critical for prevention. Automated segmentation reduces dependence on manual annotation and clinician fatigue.
+1. **Pretrained encoder dramatically outperforms random initialization** — +15.54 Val Dice and +11.94 Test Dice points over U-Net baseline
 
-### Why VGG as Encoder?
-U-Net was originally designed with a symmetric encoder-decoder structure trained from scratch. However, using a pretrained VGG16 backbone as the encoder introduces rich ImageNet features, potentially improving convergence speed and segmentation quality — especially on small datasets like CVC-ClinicDB (612 images).
+2. **BCE-Dice loss achieves best validation Dice** (0.9297); **Dice-only achieves best test generalization** (0.9200 → 0.9200, zero val→test degradation)
 
-### Key Related Papers
-- Ronneberger et al. (2015) — *U-Net: Convolutional Networks for Biomedical Image Segmentation*
-- Simonyan & Zisserman (2014) — *Very Deep Convolutional Networks (VGGNet)*
-- Jha et al. (2019) — *ResUNet++: An Advanced Architecture for Medical Image Segmentation*
-- Fan et al. (2020) — *PraNet: Parallel Reverse Attention Network for Polyp Segmentation*
+3. **Standard augmentation is optimal** — minimal augmentation causes rapid overfitting (best epoch: 19); heavy augmentation introduces unrealistic transformations that hurt performance
+
+4. **Frozen encoder is competitive** — only 0.019 Dice gap vs fine-tuned, suggesting pretrained VGG features generalize well without modification
+
+5. **VGG16 preferred over VGG19** — nearly identical test performance (0.9156 vs 0.9159) with ~20% fewer parameters
 
 ---
 
-## 🗺️ Research Roadmap
+## 📝 Methodology Notes
 
-- [x] Literature review
-- [x] Repository setup
-- [ ] Dataset preprocessing pipeline
-- [ ] Baseline U-Net implementation and training
-- [ ] VGG-UNet implementation
-- [ ] Hyperparameter tuning
-- [ ] Results analysis and visualization
-- [ ] Failure case analysis
-- [ ] Paper write-up
-- [ ] arXiv preprint submission
+This research follows an honest experimental approach. Each experiment varies exactly one component while holding all others constant, enabling direct attribution of performance differences. Results are reported for both validation and held-out test sets.
 
 ---
 
-## 📝 Notes on Methodology
+## 👥 Authors
 
-This research follows an honest experimental approach — results will be reported regardless of outcome. Negative results (VGG-UNet not outperforming baseline) are equally valid contributions to the field as they help other researchers avoid redundant paths.
-
----
-
-## 👤 Author
-
-**Rishabh Shukla**  
-M.S. Computer Science, University of Alabama at Birmingham (2025)  
+**Rishabh Shukla**
+M.S. Computer Science, University of Alabama at Birmingham (2025)
 [LinkedIn](https://linkedin.com) · [GitHub](https://github.com)
+
+**Shriyansh Singh**
+Northeastern University
+
+---
+
+## 📄 Citation
+
+```bibtex
+@misc{shukla2025vggunet,
+  title   = {VGG-UNet Hybrid Architecture for Colorectal Polyp Segmentation:
+             A Systematic Evaluation on CVC-ClinicDB},
+  author  = {Shukla, Rishabh and Singh, Shriyansh},
+  year    = {2025},
+  note    = {arXiv preprint}
+}
+```
 
 ---
 
 ## 📄 License
 
 MIT License — see [LICENSE](LICENSE) for details.
-
----
-
-*This research is independent and not affiliated with any institution.*
