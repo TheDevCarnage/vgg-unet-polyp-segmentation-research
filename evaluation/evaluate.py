@@ -78,7 +78,7 @@ def evaluate(model, model_name: str, checkpoint_path: str, transform: str):
 
 def main():
     parser = argparse.ArgumentParser(description="Evaluate trained segmentation model")
-    parser.add_argument("--model",      default="unet",     help="Model: unet | vgg_unet")
+    parser.add_argument("--model",      default="unet",     help="Model: unet | vgg_unet | vgg_unet_vgg19")
     parser.add_argument("--loss",       default="bce_dice", help="Loss used during training")
     parser.add_argument("--aug", default="standard", help="standard | minimal | heavy")
     parser.add_argument("--checkpoint", default=None,       help="Path to .pth checkpoint")
@@ -99,6 +99,8 @@ def main():
         model = VGGUNet()
     elif args.model == "vgg_unet_frozen":
         model = VGGUNet(pretrained=True, freeze_encoder=True)
+    elif args.model == "vgg_unet_vgg19":
+        model = VGGUNet(backbone="vgg19")
     else:
         raise ValueError(f"Unknown model: {args.model}")
 
