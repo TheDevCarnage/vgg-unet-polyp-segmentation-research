@@ -53,6 +53,9 @@ def main():
     elif args.model == "vgg_unet_frozen":
         model = VGGUNet(pretrained=True, freeze_encoder=True)
         model_name = f"vgg_unet_frozen_{args.loss}{aug_suffix}"
+    elif args.model == "vgg_unet_vgg19":
+        model      = VGGUNet(pretrained=True, backbone="vgg19")
+        model_name = f"vgg_unet_vgg19_{args.loss}_{args.aug}"
     else:
         raise ValueError(f"Unknown model: {args.model}")
 
